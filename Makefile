@@ -3,10 +3,9 @@ export ARCHS = x86_64
 
 include $(THEOS)/makefiles/common.mk
 
-CLANG_LIBS = clang
-# clangARCMigrate clangAST clangASTMatchers clangAnalysis clangApplyReplacements clangBasic clangCodeGen clangDriver clangDynamicASTMatchers clangEdit clangFormat clangFrontend clangFrontendTool clangIndex clangLex clangParse clangQuery clangRename clangRewrite clangRewriteFrontend clangSema clangSerialization clangStaticAnalyzerCheckers clangStaticAnalyzerCore clangStaticAnalyzerFrontend clangTidy clangTidyGoogleModule clangTidyLLVMModule clangTidyMiscModule clangTidyReadability clangTidyUtils clangTooling clangToolingCore
+# CLANG_LIBS = clang clangARCMigrate clangAST clangASTMatchers clangAnalysis clangApplyReplacements clangBasic clangCodeGen clangDriver clangDynamicASTMatchers clangEdit clangFormat clangFrontend clangFrontendTool clangIndex clangLex clangParse clangQuery clangRename clangRewrite clangRewriteFrontend clangSema clangSerialization clangStaticAnalyzerCheckers clangStaticAnalyzerCore clangStaticAnalyzerFrontend clangTidy clangTidyGoogleModule clangTidyLLVMModule clangTidyMiscModule clangTidyReadability clangTidyUtils clangTooling clangToolingCore
 # CLANG_LIBS += z ncurses
-LLVM_LIBS = $(shell llvm-config-3.7 --libs)
+# LLVM_LIBS = $(shell llvm-config-3.7 --libs)
 
 TOOL_NAME = logos
 
@@ -21,7 +20,7 @@ logos_LDFLAGS = $(shell llvm-config-3.7 --ldflags)
 include $(THEOS_MAKE_PATH)/tool.mk
 
 test-logos: logos
-	@bat --paging=never $(ARGS)
+	# @bat --paging=never $(ARGS)
 	@$(THEOS_OBJ_DIR)/logos $(ARGS)
 
 print:
