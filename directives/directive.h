@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "../source/tokenizer.h"
+#include "../source/diagnose.h"
 
 // Directive name, without percentage character
 __used

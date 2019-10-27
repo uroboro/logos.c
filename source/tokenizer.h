@@ -10,7 +10,6 @@
 #define LOGOS_EXPECTED_SOMETHING 1
 #define LOGOS_EXPECTED_OPTIONAL  2
 
-
 typedef struct TLTokenizerImpl * TLTokenizer;
 typedef struct TLDirectiveImpl * TLDirective;
 typedef struct TLMetadataImpl * TLMetadata;
@@ -89,14 +88,6 @@ int logos_lastToken(TLTokenizer tk, CXToken * token);
 
 void logos_rewindTokens(TLTokenizer tk);
 
-void logos_diagnoseExpectedToken(TLTokenizer tk, CXToken token, enum CXDiagnosticSeverity severity, const char * expectation);
-
-void logos_diagnoseExpectedAfterToken(TLTokenizer tk, CXToken token, enum CXDiagnosticSeverity severity, const char * expectation);
-
-void logos_diagnoseToken(TLTokenizer tk, CXToken token, enum CXDiagnosticSeverity severity, const char * format, ...);
-
-void logos_diagnoseAfterToken(TLTokenizer tk, CXToken token, enum CXDiagnosticSeverity severity, const char * format, ...);
-
 int logos_checkKindAndStringOfToken(TLTokenizer tk, CXToken token, CXTokenKind target_kind, ... /* NULL-terminated `char *` list */);
 
 LOGOS_Enum(TLArgumentsParseEnum) {
@@ -107,6 +98,7 @@ LOGOS_Enum(TLArgumentsParseEnum) {
 };
 
 LOGOS_EXTERN CXToken logos_openParenthesisToken;
+
 TLArgumentsParseEnum logos_parseFunctionArguments(TLTokenizer tk, CXToken * * * _argumentList, unsigned int * * _num_argumentList, unsigned int * _num_argumentCount);
 
 void logos_disposeFunctionArguments(TLTokenizer tk, CXToken * * argumentList, unsigned int * num_argumentList, unsigned int num_argumentCount);
