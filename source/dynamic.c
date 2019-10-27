@@ -12,6 +12,9 @@
 
 #include "dynamic.h"
 
+#define ITER_ALWAYS 0
+#define ITER_ONCE 1
+
 static const struct mach_header * find_executable_header() {
 	for (uint32_t i = 0; i < _dyld_image_count(); i++) {
 		const struct mach_header * header = _dyld_get_image_header(i);
@@ -28,8 +31,8 @@ static void iter_cmds_for_type(const struct mach_header * mh, uint32_t target, i
 	}
 
     struct load_command * lcommand = (struct load_command *)((mach_vm_address_t)mh + sizeof(struct mach_header_64));
-    for (uint32_t command = 0; command < mh->ncmds; command++,
-		lcommand = (struct load_command *)((mach_vm_address_t)lcommand + lcommand->cmdsize)) {
+    for (uint32_t command = 0; command < mh->ncmds; command++) {
+		lcommand = (struct load_command *)((mach_vm_address_t)lcommand + lcommand->cmdsize);
         if (lcommand->cmd == target) {
             found(lcommand);
             if (only_once) {
@@ -40,20 +43,20 @@ static void iter_cmds_for_type(const struct mach_header * mh, uint32_t target, i
 }
 
 void enumerate_symbols(const struct mach_header * mh, void (^callback)(const char * symbol, void * addr)) {
+    if (!mh) {
+        return;
+    }
+
     __block uint64_t slide = 0;
     __block struct symtab_command * symcmd = NULL;
     __block struct nlist_64 * symtab = NULL;
     __block const char * strtab = NULL;
 
-    if (!mh) {
-        return;
-    }
-
-    iter_cmds_for_type(mh, LC_SYMTAB, 1, ^(struct load_command * lc) {
+    iter_cmds_for_type(mh, LC_SYMTAB, ITER_ONCE, ^(struct load_command * lc) {
         symcmd = (struct symtab_command *)lc;
     });
 
-    iter_cmds_for_type(mh, LC_SEGMENT_64, 0, ^(struct load_command * lc) {
+    iter_cmds_for_type(mh, LC_SEGMENT_64, ITER_ALWAYS, ^(struct load_command * lc) {
         struct segment_command_64 * seg = (struct segment_command_64 *)lc;
         if (seg->fileoff == 0) {
             slide = (intptr_t)mh - seg->vmaddr;
