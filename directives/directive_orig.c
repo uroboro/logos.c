@@ -18,7 +18,7 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 
 		CXToken token;
 		if (logos_peekToken(tk, &token)) {
-			if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "(", NULL)) {
+			if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "(", NULL)) {
 
 				TLArgumentsParseEnum r = logos_parseFunctionArguments(tk, &metadata->argumentList, &metadata->num_argumentList, &metadata->num_argumentCount);
 				switch (r) {

@@ -23,7 +23,7 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 
 		CXToken token;
 		if (logos_peekToken(tk, &token)) {
-			if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "(", NULL)) {
+			if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "(", NULL)) {
 				logos_diagnoseToken(tk, token, CXDiagnostic_Error, "expected '('");
 				logos_directive_dispose(tk, metadata);
 				return NULL;
@@ -55,7 +55,7 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 		}
 
 		if (logos_peekToken(tk, &token)) {
-			if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "{", NULL)) {
+			if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "{", NULL)) {
 				logos_diagnoseToken(tk, token, CXDiagnostic_Error, "expected '{'");
 
 				logos_directive_dispose(tk, metadata);

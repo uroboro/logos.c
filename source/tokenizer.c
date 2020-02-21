@@ -253,12 +253,13 @@ void logos_disposeDirective(TLTokenizer tk, void * metadata) {
 
 
 
-int logos_checkKindAndStringOfToken(TLTokenizer tk, CXToken token, CXTokenKind target_kind, ...) {
+int logos_tokenMatchesKindAndString(TLTokenizer tk, CXToken token, CXTokenKind target_kind, ...) {
+	// Return 0 if does not match the type or any of the strings
 	if (clang_getTokenKind(token) != target_kind) {
 		return 0;
 	}
 
-	int r = 1;
+	int found = 0;
 
 	CXString tokenString = clang_getTokenSpelling(tk->translationUnit, token);
 	const char * token_str = clang_getCString(tokenString);
@@ -266,8 +267,8 @@ int logos_checkKindAndStringOfToken(TLTokenizer tk, CXToken token, CXTokenKind t
 	va_list ap;
 	char * target_string;
 	for (va_start(ap, target_kind); (target_string = va_arg(ap, char *)) != NULL;) {
-		if (strcmp(token_str, target_string)) {
-			r = 0;
+		if (!strcmp(token_str, target_string)) {
+			found = 1;
 			break;
 		}
 	}
@@ -275,7 +276,7 @@ int logos_checkKindAndStringOfToken(TLTokenizer tk, CXToken token, CXTokenKind t
 
 	clang_disposeString(tokenString);
 
-	return r;
+	return found;
 }
 
 
@@ -289,7 +290,7 @@ TLArgumentsParseEnum logos_parseFunctionArguments(TLTokenizer tk, CXToken * * * 
 
 	CXToken token;
 	if (logos_peekToken(tk, &token)) {
-		if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "(", NULL)) {
+		if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "(", NULL)) {
 			return TLArgumentsParseUnexpectedTokenError;
 		}
 		logos_openParenthesisToken = token;
@@ -334,12 +335,12 @@ TLArgumentsParseEnum logos_parseFunctionArguments(TLTokenizer tk, CXToken * * * 
 
 	unsigned int depth = 0;
 	for (CXToken token; logos_popToken(tk, &token);) {
-		if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "(", NULL)) {
+		if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "(", NULL)) {
 			depth++;
 			if (depth != 1) {
 				addToCurrentList(token);
 			}
-		} else if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, ")", NULL)) {
+		} else if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, ")", NULL)) {
 			depth--;
 			if (depth == 0) {
 				finishList();
@@ -347,7 +348,7 @@ TLArgumentsParseEnum logos_parseFunctionArguments(TLTokenizer tk, CXToken * * * 
 			} else {
 				addToCurrentList(token);
 			}
-		} else if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, ",", NULL)) {
+		} else if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, ",", NULL)) {
 			if (depth == 1) {
 				changeToNextList();
 			} else {
@@ -392,7 +393,7 @@ void logos_analyseTokens(TLTokenizer tk) {
 
 	// CXTranslationUnit tu = tk->translationUnit;
 	for (CXToken token; logos_popToken(tk, &token);) {
-		if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "%", NULL)) {
+		if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "%", NULL)) {
 			continue;
 		}
 

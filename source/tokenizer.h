@@ -88,7 +88,7 @@ int logos_lastToken(TLTokenizer tk, CXToken * token);
 
 void logos_rewindTokens(TLTokenizer tk);
 
-int logos_checkKindAndStringOfToken(TLTokenizer tk, CXToken token, CXTokenKind target_kind, ... /* NULL-terminated `char *` list */);
+int logos_tokenMatchesKindAndString(TLTokenizer tk, CXToken token, CXTokenKind target_kind, ... /* NULL-terminated `char *` list */);
 
 LOGOS_Enum(TLArgumentsParseEnum) {
 	TLArgumentsParseSuccess,

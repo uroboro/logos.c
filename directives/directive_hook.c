@@ -15,7 +15,7 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 
 		CXToken token;
 		if (logos_peekToken(tk, &token)) {
-			if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Identifier, NULL)) {
+			if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Identifier, NULL)) {
 				logos_diagnoseToken(tk, token, CXDiagnostic_Error, "expected identifier");
 				logos_directive_dispose(tk, metadata);
 				return NULL;

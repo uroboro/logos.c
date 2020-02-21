@@ -60,7 +60,7 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 		}
 
 		if (logos_peekToken(tk, &token)) {
-			if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, ";", NULL)) {
+			if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, ";", NULL)) {
 				logos_diagnoseExpectedToken(tk, token, CXDiagnostic_Error, ";");
 				logos_diagnoseToken(tk, percentageToken, CXDiagnostic_Note, "to match this '%%%s'", logos_directive_name);
 				logos_directive_dispose(tk, metadata);

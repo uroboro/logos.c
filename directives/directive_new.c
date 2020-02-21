@@ -17,7 +17,7 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 
 		CXToken token;
 		if (logos_peekToken(tk, &token)) {
-			if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "(", NULL)) {
+			if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "(", NULL)) {
 				// logos_popToken(tk, &token);
 
 				void (^addToCurrentList)(CXToken token) = ^(CXToken token) {
@@ -38,12 +38,12 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 
 				unsigned int depth = 0;
 				for (CXToken token; logos_popToken(tk, &token);) {
-					if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "(", NULL)) {
+					if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "(", NULL)) {
 						depth++;
 						if (depth != 1) {
 							addToCurrentList(token);
 						}
-					} else if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, ")", NULL)) {
+					} else if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, ")", NULL)) {
 						depth--;
 						if (depth == 0) {
 							finishList();
@@ -58,8 +58,8 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 				logos_peekToken(tk, &token);
 			}
 
-			if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "+", NULL)
-				&& !logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "-", NULL)) {
+			if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "+", NULL)
+				&& !logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "-", NULL)) {
 				logos_diagnoseToken(tk, token, CXDiagnostic_Error, "expected '+' or '-'");
 				logos_diagnoseToken(tk, percentageToken, CXDiagnostic_Note, "to match this '%%%s'", logos_directive_name);
 				logos_directive_dispose(tk, metadata);

@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../source/tokenizer.h"
+#include "source/tokenizer.h"
+#include "source/diagnose.h"
 
 
 // Per-directive ocurrence metadata
@@ -28,13 +29,9 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 	CXToken token;
 	if (logos_peekToken(tk, &token)) {
 		// Check if it matches expectations (":" which is a punctuation token)
-		if (!logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, ":", NULL)) {
-			CXSourceLocation tokenStart = clang_getRangeStart(
-				clang_getTokenExtent(tk->translationUnit, token)
-			);
+		if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, ":", NULL)) {
 			// Display a concise error message
-			logos_diagnoseToken(tk, tokenStart, CXDiagnostic_Error,
-				"expected ':'");
+			logos_diagnoseToken(tk, token, CXDiagnostic_Error, "expected ':'");
 			// Return NULL to indicate an error
 			return NULL;
 		}
@@ -42,7 +39,7 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 
 	Metadata * metadata = (Metadata *)calloc(1, sizeof(Metadata));
 	if (metadata) {
-		metadata->percentageLocation = percentageLocation;
+		metadata->percentageToken = percentageToken;
 		/*
 		* use these functions to get data about this directive:
 		*   - logos_peekToken(tk, &token);
@@ -57,7 +54,7 @@ static void logos_directive_describe(TLTokenizer tk, void * _metadata) {
 	Metadata * metadata = (Metadata *)_metadata;
 	if (metadata) {
 		// Describe internal data
-		logos_diagnoseToken(tk, metadata->percentageLocation, CXDiagnostic_Note,
+		logos_diagnoseToken(tk, metadata->percentageToken, CXDiagnostic_Note,
 			"found directive '%s'", logos_directive_name);
 	}
 }
