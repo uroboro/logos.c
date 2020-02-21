@@ -4,8 +4,8 @@ typedef struct Metadata {
 	unsigned int index;
 	CXToken percentageToken;
 
-	CXToken * signatureList;
-	unsigned int num_signatureList;
+	char sigil;
+	char * name;
 } Metadata;
 
 static const char logos_directive_name[] = "c";
@@ -14,7 +14,8 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 	Metadata * metadata = (Metadata *)calloc(1, sizeof(Metadata));
 	if (metadata) {
 		metadata->percentageToken = percentageToken;
-#if 0
+		metadata->sigil = '-';
+
 		CXToken token;
 		if (logos_popToken(tk, &token)) {
 			if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "(", NULL)) {
@@ -28,18 +29,38 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 			return NULL;
 		}
 
-		if (logos_popToken(tk, &token)) {
-			if (logos_checkKindAndStringOfToken(tk, token, CXToken_Punctuation, "+", "-", NULL)) {
-				logos_diagnoseToken(tk, token, CXDiagnostic_Error, "expected '+' or '-'");
-				logos_diagnoseToken(tk, percentageToken, CXDiagnostic_Note, "to match this '%%c'");
+
+		if (logos_peekToken(tk, &token)) {
+			if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, ")", NULL)) {
+				logos_diagnoseToken(tk, percentageToken, CXDiagnostic_Error, "expected identifier for this '%%%s'", logos_directive_name);
+				logos_directive_dispose(tk, metadata);
 				return NULL;
 			}
+		}
+
+		if (logos_popToken(tk, &token)) {
+			if (logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, "+", "-", NULL)) {
+				CXString spellingString = clang_getTokenSpelling(tk->translationUnit, token);
+				const char * spelling_str = clang_getCString(spellingString);
+				metadata->sigil = spelling_str[0];
+				clang_disposeString(spellingString);
+
+				if (!logos_popToken(tk, &token)) {
+					logos_diagnoseToken(tk, token, CXDiagnostic_Error, "expected identifier");
+					logos_diagnoseToken(tk, percentageToken, CXDiagnostic_Note, "to match this '%%c'");
+					return NULL;
+				}
+			}
+
+			CXString spellingString = clang_getTokenSpelling(tk->translationUnit, token);
+			const char * spelling_str = clang_getCString(spellingString);
+			metadata->name = strdup(spelling_str);
+			clang_disposeString(spellingString);
 		} else {
-			logos_diagnoseToken(tk, percentageToken, CXDiagnostic_Error, "expected ')' for this '%%%s'", logos_directive_name);
+			logos_diagnoseToken(tk, percentageToken, CXDiagnostic_Error, "expected identifier for this '%%%s'", logos_directive_name);
 			logos_directive_dispose(tk, metadata);
 			return NULL;
 		}
-
 
 		if (logos_popToken(tk, &token)) {
 			if (!logos_tokenMatchesKindAndString(tk, token, CXToken_Punctuation, ")", NULL)) {
@@ -49,7 +70,6 @@ static void * logos_directive_parse(TLTokenizer tk, CXToken percentageToken) {
 			}
 		}
 
-#endif
 	}
 
 	return metadata;
@@ -62,27 +82,14 @@ static void logos_directive_describe(TLTokenizer tk, void * _metadata) {
 			"found directive '%s'", logos_directive_name);
 
 		printf("Class name:\n");
-		printf("- \033[33m");
-		for (unsigned int index = 0; index < metadata->num_signatureList; index++) {
-			CXToken token = metadata->signatureList[index];
-			CXString spellingString = clang_getTokenSpelling(tk->translationUnit, token);
-			const char * spelling_str = clang_getCString(spellingString);
-			printf("%s", spelling_str);
-			if (index < metadata->num_signatureList - 1) {
-				printf(" ");
-			}
-			clang_disposeString(spellingString);
-		}
-		printf("\033[m\n");
+		printf("- \033[33m%c%s\033[m\n", metadata->sigil, metadata->name);
 	}
 }
 
 static void logos_directive_dispose(TLTokenizer tk, void * _metadata) {
 	Metadata * metadata = (Metadata *)_metadata;
 	if (metadata) {
-		if (metadata->signatureList) {
-			free(metadata->signatureList);
-		}
+		free(metadata->name);
 		free(metadata);
 	}
 }
